@@ -17,9 +17,10 @@ Automated Video Editing: Assembles the identified interesting parts into a new v
 Before running the project, you need to set up the necessary directory structure:
 
 Create Folders: In the project root, create three folders:
-`videos`: This folder will be used to store the downloaded YouTube videos.
-`tiktoks`: The edited and processed videos will be saved in this folder.
-`backgrounds`: Add satisfying 2-minute videos in this folder. These videos will be used as backgrounds.
+- `videos`: This folder will be used to store the downloaded YouTube videos.
+- `tiktoks`: The edited and processed videos will be saved in this folder.
+- `backgrounds`: Add satisfying 2-minute videos in this folder. These videos will be used as backgrounds.
+  
 Please note that these folders are essential for the proper functioning of the project. Without them, the script may not work correctly.
 
 To launch the project, run the index.js script from the command line. The script will prompt you to enter a YouTube video URL. This URL will then be processed by the download.js script.
