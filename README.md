@@ -13,6 +13,16 @@ Automated Video Editing: Assembles the identified interesting parts into a new v
 - youtube-captions-scraper for subtitle extraction.
 - sentiment for analyzing the emotional content of the subtitles.
 
+### Future Enhancements
+This project is actively being improved, and several enhancements are planned for upcoming versions. These improvements aim to provide more flexibility and functionality to users:
+
+1. Selectable Background Videos: We plan to implement a feature that allows users to choose their satisfying background videos through a link, providing more control over the final output.
+2. Advanced Video Segment Selection: Future updates will include options for more nuanced video segment selection. This may include:
+  - Choosing segments based on specific parts of the video.
+  - Selecting starting points for video analysis and editing.
+  - Options for manual or automated segment selection based on various criteria.
+3. Customizable Subtitles and Titles: We aim to introduce the ability to add custom subtitles and titles to the edited videos. This will enable users to create more personalized and engaging content.
+
 ### Usage
 Before running the project, you need to set up the necessary directory structure:
 
