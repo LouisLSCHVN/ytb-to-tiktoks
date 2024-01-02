@@ -13,15 +13,15 @@ Automated Video Editing: Assembles the identified interesting parts into a new v
 - youtube-captions-scraper for subtitle extraction.
 - sentiment for analyzing the emotional content of the subtitles.
 
-### Future Enhancements
-This project is actively being improved, and several enhancements are planned for upcoming versions. These improvements aim to provide more flexibility and functionality to users:
+## Future Enhancements
 
-1. Selectable Background Videos: We plan to implement a feature that allows users to choose their satisfying background videos through a link, providing more control over the final output.
-2. Advanced Video Segment Selection: Future updates will include options for more nuanced video segment selection. This may include:
-  - Choosing segments based on specific parts of the video.
-  - Selecting starting points for video analysis and editing.
-  - Options for manual or automated segment selection based on various criteria.
-3. Customizable Subtitles and Titles: We aim to introduce the ability to add custom subtitles and titles to the edited videos. This will enable users to create more personalized and engaging content.
+This project is continuously evolving, with several enhancements planned for upcoming versions to provide more flexibility and functionality:
+
+1. **Selectable Background Videos**: A feature is in the works to allow the selection of satisfying background videos through a link, offering more control over the final output.
+
+2. **Advanced Video Segment Selection**: Upcoming updates will introduce options for more nuanced video segment selection. This will include choosing segments based on specific parts of the video, selecting starting points for video analysis and editing, and options for manual or automated segment selection based on various criteria.
+
+3. **Customizable Subtitles and Titles**: The ability to add custom subtitles and titles to the edited videos is being developed, enabling the creation of more personalized and engaging content.
 
 ### Usage
 Before running the project, you need to set up the necessary directory structure:
