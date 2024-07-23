@@ -21,7 +21,7 @@ async function download(url) {
     quality: "highestaudio",
   });
 
-  const videoStream = ytdl.downloadFromInfo(info, { format: videoFormat });
+  const videoStream = ytdl.downloadFromInfo(info, { format: "videoFormat" });
   const audioStream = ytdl.downloadFromInfo(info, { format: audioFormat });
 
   let videoSize = 0;
