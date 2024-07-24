@@ -25,7 +25,7 @@ export default class Download {
         this.options = {
             outputDir: '.output',
             outputFile: 'video.mp4',
-            defaultQuality: 'best',
+            defaultQuality: 'bestvideo+bestaudio/best',
             defaultVideoQuality: 'bestvideo',
             defaultAudioQuality: 'bestaudio',
         };
@@ -36,7 +36,7 @@ export default class Download {
      * @returns Promise<void>
      */
     public async init(): Promise<void> {
-        consola.box("WELCOME !");
+        consola.box(this.url);
         consola.info(`Your video will be downloaded in the '${this.options.outputDir}' folder` + lineBreak);
         consola.start('Initializing video information...');
         try {
@@ -197,14 +197,22 @@ export default class Download {
      * Start the download process
      * @param format
      */
-    public async downloadProcess(format: string = this.options.defaultQuality): Promise<string> {
-        const outputPath = path.join(this.options.outputDir!, this.options.outputFile);
-        await this.ensureDirectoryExists(outputPath);
-        const downloadProcess = youtubedl.exec(this.url, {
-            format: format,
-            output: outputPath,
-        });
-        await downloadProcess;
-        return outputPath;
+    public async downloadProcess(format: string = this.options.defaultQuality): Promise<string | Error> {
+        try {
+            const outputPath = path.join(this.options.outputDir!, this.options.outputFile);
+            await this.ensureDirectoryExists(outputPath);
+            const downloadProcess = youtubedl.exec(this.url, {
+                format: format,
+                mergeOutputFormat: "mp4",
+                output: outputPath,
+                verbose: true,
+            });
+            await downloadProcess;
+
+            await new Promise(resolve => setTimeout(resolve, 5000));
+            return outputPath;
+        } catch(error) {
+            consola.error('An error occurred while downloading the video', error);
+        }
     }
 }

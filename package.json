@@ -15,6 +15,10 @@
   },
   "dependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
+    "@ffprobe-installer/ffprobe": "^2.1.2",
+    "@types/cli-progress": "^3.11.6",
+    "@types/fluent-ffmpeg": "^2.1.24",
+    "cli-progress": "^3.12.0",
     "compromise": "^14.13.0",
     "consola": "^3.2.3",
     "fluent-ffmpeg": "^2.1.3",

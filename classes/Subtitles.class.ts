@@ -1,7 +1,8 @@
-import ytbSubs from 'youtube-transcript-api';
-import consola from "consola";
 import fs from 'fs';
 import path from 'path';
+import consola from "consola";
+// @ts-ignore
+import ytbSubs from 'youtube-transcript-api';
 
 interface SubtitlesOptions {
     outputDir: string;
