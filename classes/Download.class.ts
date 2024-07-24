@@ -1,7 +1,8 @@
 import * as path from "node:path";
 import { promises as fsPromises } from 'node:fs';
-import youtubedl from 'youtube-dl-exec';
+import youtubedl, {exec} from 'youtube-dl-exec';
 import consola from "consola";
+import ffmpeg from "fluent-ffmpeg";
 
 const lineBreak = '\n';
 
@@ -215,4 +216,5 @@ export default class Download {
             consola.error('An error occurred while downloading the video', error);
         }
     }
+
 }

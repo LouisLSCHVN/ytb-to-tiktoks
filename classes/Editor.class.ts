@@ -6,6 +6,8 @@ import fs from "node:fs";
 
 import consola from "consola";
 import cliProgress from "cli-progress";
+import exec from "node:child_process";
+import path from "node:path";
 
 
 /**
@@ -264,7 +266,7 @@ export default class Editor {
             }
 
             function hasAudioStream(metadata: any): boolean {
-                return metadata.streams.some(stream => stream.codec_type === 'audio');
+                return metadata.streams.some((stream: { codec_type: string; }) => stream.codec_type === 'audio');
             }
 
             ffprobe(topVideoPath, (err, topMetadata) => {
@@ -381,6 +383,106 @@ export default class Editor {
 
                 const audioStreams = metadata.streams.filter(stream => stream.codec_type === 'audio');
                 resolve(audioStreams.length > 0);
+            });
+        });
+    }
+
+    public async splitVideo(inputPath: string, partDuration: number, title: string, outputFolder: string): Promise<string[]> {
+        const outputPaths: string[] = [];
+
+
+        partDuration = partDuration / 1000;
+
+        const totalDuration = await this.getVideoDuration(inputPath);
+        consola.warn("This process may take a while depending on the video size");
+        console.log(totalDuration);
+        const numParts = Math.ceil(totalDuration / partDuration);
+        consola.info('Total video duration:', totalDuration);
+        consola.info('Number of parts:', numParts);
+
+        for (let i = 0; i < numParts; i++) {
+            const start = i * partDuration;
+            const outputPath = path.join(outputFolder, `${title}-${i + 1}.mp4`);
+            outputPaths.push(outputPath);
+
+            const progressBar = this.progressBar();
+            let duration = 0;
+            let started = false;
+
+
+            consola.start(`Creating part ${i + 1}...`);
+            await new Promise<void>((resolve, reject) => {
+                ffmpeg(inputPath)
+                    .setStartTime(start)
+                    .setDuration(partDuration)
+                    .videoFilters([
+                        // First text (large and centered on a black box)
+                        {
+                            filter: 'drawtext',
+                            options: {
+                                text: this.formatText(`Partie ${i + 1}`),
+                                fontcolor: 'white',
+                                fontsize: '100', // Increased font size
+                                box: '1',
+                                boxcolor: 'black@1',
+                                boxborderw: '20',
+                                //boxborderradius: '25',
+                                x: '(w-text_w)/2', // Centered horizontally
+                                y: '(h-text_h*2+65)/2', // Positioned to make room for second text
+                            }
+                        },
+                        // Second text (black on a red box)
+                        {
+                            filter: 'drawtext',
+                            options: {
+                                text: this.formatText(title),
+                                fontcolor: 'black',
+                                fontsize: '100',
+                                box: '1',
+                                boxcolor: 'red@0.8',
+                                boxborderw: '25',
+                                //boxborderradius: '25',
+                                x: '(w-text_w)/2', // Centered horizontally
+                                y: '((h-text_h*2)/2)+text_h+75', // Positioned below the first text
+                            }
+                        }
+                    ])
+                    .output(outputPath)
+                    .on("codecData", (data) => {
+                        duration = parseInt(data.duration.replace(/:/g, ''));
+                        progressBar.start(duration, 0);
+                        started = true;
+                    })
+                    .on("progress", (progress) => {
+                        if (started) {
+                            const time = parseInt(progress.timemark.replace(/:/g, ''));
+                            progressBar.update(time);
+                        }
+                    })
+                    .on('end', () => {
+                        consola.success(`Part ${i + 1} created: ${outputPath}`);
+                        resolve();
+                    })
+                    .on('error', (err) => {
+                        consola.error(`Error creating part ${i + 1}:`, err);
+                        reject(err);
+                    })
+                    .run();
+            });
+        }
+
+        return outputPaths;
+    }
+
+    private async getVideoDuration(inputPath: string): Promise<number> {
+        return new Promise((resolve, reject) => {
+            ffmpeg.ffprobe(inputPath, (err, metadata) => {
+                if (err) {
+                    consola.warn('Error getting video metadata:', err);
+                    reject(err);
+                } else {
+                    resolve(metadata.format.duration);
+                }
             });
         });
     }
