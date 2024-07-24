@@ -3,10 +3,14 @@ import { promises as fsPromises } from 'node:fs';
 import youtubedl from 'youtube-dl-exec';
 import consola from "consola";
 
+const lineBreak = '\n';
+
 interface DownloadOptions {
-    outputDir?: string;
-    defaultVideoQuality?: string;
-    defaultAudioQuality?: string;
+    outputDir: string;
+    outputFile: string;
+    defaultQuality: string;
+    defaultVideoQuality: string;
+    defaultAudioQuality: string;
 }
 
 export default class Download {
@@ -20,50 +24,146 @@ export default class Download {
         this.url = url;
         this.options = {
             outputDir: '.output',
+            outputFile: 'video.mp4',
+            defaultQuality: 'best',
             defaultVideoQuality: 'bestvideo',
             defaultAudioQuality: 'bestaudio',
         };
     }
 
+    /**
+     * Initialize the download process
+     * @returns Promise<void>
+     */
     public async init(): Promise<void> {
         consola.box("WELCOME !");
-        console.info("Your video will be downloaded in the '.output' folder");
+        consola.info(`Your video will be downloaded in the '${this.options.outputDir}' folder` + lineBreak);
         consola.start('Initializing video information...');
-        this.info = await youtubedl(this.url, {
-            dumpSingleJson: true,
-            noCheckCertificates: true,
-            noWarnings: true,
-            preferFreeFormats: true,
-            addHeader: ['referer:youtube.com', 'user-agent:googlebot']
-        });
-        this.title = this.formatTitle(this.info.title);
-        consola.success('Initialization complete');
+        try {
+            this.info = await youtubedl(this.url, {
+                dumpSingleJson: true,
+                noCheckCertificates: true,
+                noWarnings: true,
+                preferFreeFormats: true,
+                addHeader: ['referer:youtube.com', 'user-agent:googlebot'],
+            });
+        } catch (error) {
+            consola.error(error)
+        }
+        this.title = await this.info.title;
+        consola.success('Initialization complete' + lineBreak);
     }
 
     public getUrl(): string {
         return this.url;
     }
 
-    public getTitle(): string | undefined {
-        return this.title;
-    }
-
-    public formatTitle(title: string): string | undefined {
-        return title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-    }
-
     public getInfo(): any | undefined {
         return this.info;
     }
 
-    public setAudioFormat(format: string): void {
+    public getTitle(): string | undefined {
+        return this.title;
+    }
+
+    /**
+     * Slugify the title
+     * @returns {string} The slugified title
+     */
+    public slugifyTitle(): string {
+        return this.getTitle()!
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/[^a-z0-9\s-]/g, "")
+            .replace(/\s+/g, "-")
+            .replace(/-+/g, "-")
+            .trim();
+    }
+
+    /**
+     * Set the output file
+     * @param file
+     * @returns {string} The output file
+     */
+    public setOutputFile(file: string): string {
+        this.options.outputFile = file;
+        return this.options.outputFile;
+    }
+
+    public getOutputFile(): string {
+        return this.options.outputFile
+    }
+
+    /**
+     * Set the output directory
+     * @param dir
+     * @returns {string} The output directory
+     */
+    public setOutputDir(dir: string): string {
+        this.options.outputDir = dir;
+        return this.options.outputDir;
+    }
+
+    public getOutputDir(): string {
+        return this.options.outputDir
+    }
+
+    /**
+     * Set the default quality
+     * @param quality
+     * @returns {string} The default quality
+     */
+    public setDefaultQuality(quality: string): string {
+        this.options.defaultQuality = quality;
+        return this.options.defaultQuality;
+    }
+
+    public getDefaultQuality(): string {
+        return this.options.defaultQuality
+    }
+
+    /**
+     * Set the audio format
+     * @param format
+     * @returns {string} The audio format
+     */
+    public setAudioFormat(format: string): string {
         this.options.defaultAudioQuality = format;
+        return this.options.defaultAudioQuality;
     }
 
-    public setVideoFormat(format: string): void {
+    public getAudioFormat(): string {
+        return this.options.defaultAudioQuality
+    }
+
+    /**
+     * Set the video format
+     * @param format
+     * @returns {string} The video format
+     */
+    public setVideoFormat(format: string): string {
         this.options.defaultVideoQuality = format;
+        return this.options.defaultVideoQuality;
     }
 
+    public getVideoFormat(): string {
+        return this.options.defaultVideoQuality
+    }
+
+    public getOptions(): DownloadOptions {
+        return this.options;
+    }
+
+    public getOutputPath(): string {
+        return path.join(this.options.outputDir!, this.options.outputFile);
+    }
+
+    /**
+     * Ensure the directory exists
+     * @param filePath
+     * @private
+     */
     private async ensureDirectoryExists(filePath: string): Promise<void> {
         const directory = path.dirname(filePath);
         try {
@@ -73,39 +173,38 @@ export default class Download {
         }
     }
 
-    public async download(): Promise<string> {
+    /**
+     * Download the video
+     * @returns The path to the downloaded video
+     * @throws Error if the download fails
+     */
+    public async download(format: string = this.options.defaultQuality): Promise<string> {
         try {
             await this.init();
 
             consola.start('Starting download process');
-            const outputPath = path.join(this.options.outputDir!, `${this.title}.mp4`);
-            await this.ensureDirectoryExists(outputPath);
-
-            const downloadProcess = youtubedl.exec(this.url, {
-                format: 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
-                mergeOutputFormat: 'mp4',
-                output: outputPath,
-            });
-
-            downloadProcess.stdout?.on('data', (data: Buffer) => {
-                const output = data.toString();
-                if (output.includes('%')) {
-                    const progressMatch = output.match(/(\d+\.\d+)%/);
-                    if (progressMatch) {
-                        const progress = parseFloat(progressMatch[1]);
-                        consola.info(`Download progress: ${progress.toFixed(1)}%`);
-                    }
-                }
-            });
-
-            await downloadProcess;
-
+            const outputPath = await this.downloadProcess(format);
             consola.success('Download complete');
-            console.log(`Downloaded video to: ${outputPath}`);
+            consola.info(`Downloaded video to: '${outputPath}'` + lineBreak);
             return outputPath;
         } catch (error) {
             consola.error('An error occurred while downloading the video:', error);
             throw error;
         }
+    }
+
+    /**
+     * Start the download process
+     * @param format
+     */
+    public async downloadProcess(format: string = this.options.defaultQuality): Promise<string> {
+        const outputPath = path.join(this.options.outputDir!, this.options.outputFile);
+        await this.ensureDirectoryExists(outputPath);
+        const downloadProcess = youtubedl.exec(this.url, {
+            format: format,
+            output: outputPath,
+        });
+        await downloadProcess;
+        return outputPath;
     }
 }

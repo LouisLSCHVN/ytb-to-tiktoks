@@ -1,3 +1,5 @@
+// I tried everything but the ytdl-core is not working anymore, so I will use the youtube-dl-exec in another class
+
 import fs from 'node:fs';
 import * as path from "node:path";
 
